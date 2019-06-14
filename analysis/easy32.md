@@ -5,7 +5,11 @@
 * [Scripting a Solution](easy_server.md#scripting_a_solution)
 * [Stopping the Attack](easy_server.md#stopping_the_attack)
 
-[Original Source](https://github.com/trailofbits/ctf/tree/master/exploits/binary1_workshop/easy)
+* Resources
+	* [Original Source](https://github.com/trailofbits/ctf/tree/master/exploits/binary1_workshop/easy)
+	* [This repo](https://github.com/sreinhardt/CTF-Beginners-Guide)
+
+
 
 This is a network based binary challenge from the Trail of Bits CTF training material. Both C source code and compiled binaries are available. Our goal is to complete three buffer overflow challenges without crashing the program to reap the flag.
 
@@ -266,95 +270,3 @@ Choosing: 3
 Message: b'ccccccccccccccccccccccccccccccccxV4\x12\n'
 flag{THIS_IS_THE_KEY}
 ```
-
-### Stopping the Attack
-
-Since this is an entirely network based attack, Snort and FirePower devices are in a perfect position to block this sort of attack, or alert on an indicator showing the service was remotely exploited. Let's look at a few possible versions and discuss the good and bad of each.
-
-```
-alert tcp $EXTERNAL_NET any -> $HOME_NET 12346 ( \
-	msg:"Challenge 1 exploitation attempt"; \
-	flow:to_server,established; \
-		content:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa|ef be 75 fa|"; \
-	classtype:attempted-user; \
-	sid:100000; \
-);
-alert tcp $EXTERNAL_NET any -> $HOME_NET 12346 ( \
-	msg:"Challenge 2 exploitation attempt"; \
-	flow:to_server,established; \
-		content:"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb|be ba fe ca|"; \
-	classtype:attempted-user; \
-	sid:100001; \
-);
-alert tcp $EXTERNAL_NET any -> $HOME_NET 12346 ( \
-	msg:"Challenge 3 exploitation attempt"; \
-	flow:to_server,established; \
-		content:"cccccccccccccccccccccccccccccccc|78 56 34 12|"; \
-	classtype:attempted-user; \
-	sid:100002; \
-);
-alert tcp $EXTERNAL_NET 12346 -> $HOME_NET any ( \
-	msg:"Challenge flag exfiltration attempt"; \
-	flow:to_client,established; \
-		content:"flag{THIS_IS_THE_KEY}"; \
-	classtype:misc-activity; \
-	sid:100003; \
-);
-```
-
-These rules will catch our traffic but cause a few issues, namely they are heavily false positive prone. Meaning we have a very high chance of an attack altering thier payload and successfully exploiting the server. What can we do to increase our chances of detecting an attack?
-
-```
-alert tcp $EXTERNAL_NET any -> $HOME_NET 12346 ( \
-	msg:"Challenge 1 exploitation attempt"; \
-	flow:to_server,established; \
-		isdataat:32; \
-		content:"|ef be 75 fa|"; \
-	classtype:attempted-user; \
-	sid:100000; \
-);
-alert tcp $EXTERNAL_NET any -> $HOME_NET 12346 ( \
-	msg:"Challenge 2 exploitation attempt"; \
-	flow:to_server,established; \
-		isdataat:32; \
-		content:"|be ba fe ca|"; \
-	classtype:attempted-user; \
-	sid:100001; \
-);
-alert tcp $EXTERNAL_NET any -> $HOME_NET 12346 ( \
-	msg:"Challenge 3 exploitation attempt"; \
-	flow:to_server,established; \
-		isdataat:32; \
-		content:"|78 56 34 12|"; \
-	classtype:attempted-user; \
-	sid:100002; \
-);
-alert tcp $EXTERNAL_NET 12346 -> $HOME_NET any ( \
-	msg:"Challenge flag exfiltration attempt"; \
-	flow:to_client,established; \
-		content:"flag{"; \
-	classtype:misc-activity; \
-	sid:100003; \
-);
-```
-
-These are looking much better! Removing the forced characters and instead leveraging isdataat, allows us to accept any possible value instead. However a careful eye may still notice an issue or two....
-
-```
-alert tcp $EXTERNAL_NET any -> $HOME_NET 12346 ( \
-	msg:"Challenge exploitation attempt"; \
-	flow:to_server,established; \
-		isdataat:33; \
-	classtype:attempted-user; \
-	sid:100000; \
-);
-alert tcp $EXTERNAL_NET 12346 -> $HOME_NET any ( \
-	msg:"Challenge flag exfiltration attempt"; \
-	flow:to_client,established; \
-		content:"flag{"; \
-	classtype:misc-activity; \
-	sid:100003; \
-);
-```
-
-Well isn't that nice, we can move all of those exploitation rules into a single one. How does that work, they were all different payloads and mandatory following characters, right! Yes, but because they all hold the same message format and internal program logic, we can safely say any message to this server over 33 bytes is an attempt at exploitation!
