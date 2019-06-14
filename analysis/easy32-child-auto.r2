@@ -70,16 +70,16 @@ db sym.checksec+0x5E
 # "dbc sym.checksec+0x1D dr eax; !echo are all enabled"
 "dbc sym.checksec+0x1D dr eax; dc"
 
-# "dbc sym.checksec+0x5E dr eax; ps+ @eax; !echo sending flag"
-"dbc sym.checksec+0x5E dr eax; ps+ @eax; dc"
+# "dbc sym.checksec+0x5E dr eax; ps+ @ eax; !echo sending flag"
+"dbc sym.checksec+0x5E dr eax; ps+ @ eax; dc"
 
 
 # heckers
 db sym.hekers+0x34
 db sym.hekers+0x74
 
-# "dbc sym.hekers+0x34 dr eax; px 40 @eax; !echo heckers buf"
-"dbc sym.hekers+0x34 dr eax; px 40 @eax; dc"
+# "dbc sym.hekers+0x34 dr eax; px 40 @ eax; !echo heckers buf"
+"dbc sym.hekers+0x34 dr eax; px 40 @ eax; dc"
 
 # "dbc sym.hekers+0x74 dr eax; !echo zeroweekend val"
 "dbc sym.hekers+0x74 dr eax; dc"
@@ -88,8 +88,8 @@ db sym.hekers+0x74
 db sym.batmenss+0x34
 db sym.batmenss+0x74
 
-# "dbc sym.batmenss+0x34 dr eax; px 40 @eax; !echo batmenss buf"
-"dbc sym.batmenss+0x34 dr eax; px 40 @eax; dc"
+# "dbc sym.batmenss+0x34 dr eax; px 40 @ eax; !echo batmenss buf"
+"dbc sym.batmenss+0x34 dr eax; px 40 @ eax; dc"
 
 # "dbc sym.batmenss+0x74 dr eax; !echo batsignet val"
 "dbc sym.batmenss+0x74 dr eax; dc"
