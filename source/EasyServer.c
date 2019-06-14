@@ -130,6 +130,7 @@ void readInput(int sock){
 }
 
 int main(int argc, char *argv[]) {
+
   char buffer[BUFFER_SIZE];
   int sockfd, newsockfd, portno, pid;
   socklen_t clilen;
